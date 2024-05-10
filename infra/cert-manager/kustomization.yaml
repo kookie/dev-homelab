@@ -3,16 +3,16 @@ kind: Kustomization
 
 resources:
   - ns.yaml
-  #- cloudflare-api-token.yaml
-  #- cluster-issuer.yaml
 
 helmCharts:
   - name: cert-manager
     repo: https://charts.jetstack.io
     version: 1.14.5
-    includeCRDs: true
     releaseName: cert-manager
     namespace: cert-manager
-    valuesFile: values.yaml
+    valuesInline:
+      installCRDs: true
+      extraArgs:
+        - "--feature-gates=ExperimentalGatewayAPISupport=true"
 
 
