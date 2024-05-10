@@ -3,6 +3,10 @@ k8sServicePort: 6443
 
 kubeProxyReplacement: true
 
+# Support GatewayAPI
+gatewayAPI:
+  enabled: true
+
 l2announcements:
   enabled: true
 
