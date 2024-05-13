@@ -28,7 +28,7 @@ spec:
   project: default
   source:
     path: homelab
-    repoURL: https://github.com/kookie/homelab-dev.git
+    repoURL: https://github.com/kookie/dev-homelab.git
     targetRevision: HEAD
     directory:
       recurse: true
