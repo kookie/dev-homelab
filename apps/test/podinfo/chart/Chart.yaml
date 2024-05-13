@@ -1,0 +1,10 @@
+apiVersion: v2
+name: podinfo
+description: podinfo chart
+type: application
+version: 0.1.0
+appVersion: "6.6.2"
+dependencies:
+  - name: podinfo
+    version: "6.6.2"
+    repository: https://stefanprodan.github.io/podinfo
