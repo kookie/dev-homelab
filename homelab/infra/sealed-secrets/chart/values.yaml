@@ -1,83 +1,50 @@
 sealed-secrets:
 
-  # Copyright Broadcom, Inc. All Rights Reserved.
-  # SPDX-License-Identifier: APACHE-2.0
-
-  ## @section Global parameters
-  ## Global Docker image parameters
-  ## Please, note that this will override the image parameters, including dependencies, configured to use the global value
-  ## Current available global Docker image parameters: imageRegistry, imagePullSecrets and storageClass
-  ##
-
-  ## @param global.imageRegistry Global Docker image registry
-  ## @param global.imagePullSecrets [array] Global Docker registry secret names as an array
-  ## @param global.storageClass Global StorageClass for Persistent Volume(s)
-  ##
-  global:
-    imageRegistry: ""
-    ## E.g.
-    ## imagePullSecrets:
-    ##   - myRegistryKeySecretName
-    ##
-    imagePullSecrets: []
-    storageClass: ""
-    ## Compatibility adaptations for Kubernetes platforms
-    ##
-    compatibility:
-      ## Compatibility adaptations for Openshift
-      ##
-      openshift:
-        ## @param global.compatibility.openshift.adaptSecurityContext Adapt the securityContext sections of the deployment to make them compatible with Openshift restricted-v2 SCC: remove runAsUser, runAsGroup and fsGroup and let the platform use their allowed default IDs. Possible values: auto (apply if the detected running cluster is Openshift), force (perform the adaptation always), disabled (do not perform adaptation)
-        ##
-        adaptSecurityContext: auto
   ## @section Common parameters
-  ##
 
   ## @param kubeVersion Override Kubernetes version
   ##
   kubeVersion: ""
-  ## @param nameOverride String to partially override common.names.fullname
+  ## @param nameOverride String to partially override sealed-secrets.fullname
   ##
   nameOverride: ""
-  ## @param fullnameOverride String to fully override common.names.fullname
+  ## @param fullnameOverride String to fully override sealed-secrets.fullname
   ##
   fullnameOverride: ""
-  ## @param namespaceOverride String to fully override common.names.namespace
+  ## @param namespace Namespace where to deploy the Sealed Secrets controller
   ##
-  namespaceOverride: ""
-  ## @param commonLabels [object] Labels to add to all deployed objects
-  ##
-  commonLabels: {}
-  ## @param commonAnnotations [object] Annotations to add to all deployed objects
-  ##
-  commonAnnotations: {}
-  ## @param clusterDomain Kubernetes cluster domain name
-  ##
-  clusterDomain: cluster.local
+  namespace: ""
+
   ## @param extraDeploy [array] Array of extra objects to deploy with the release
   ##
   extraDeploy: []
-  ## @section Sealed Secrets Parameters
+  ## @param commonAnnotations [object] Annotations to add to all deployed resources
+  ## ref: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/
   ##
+  commonAnnotations: {}
 
-  ## Bitnami Sealed Secrets image
-  ## ref: https://hub.docker.com/r/bitnami/redis/tags/
-  ## @param image.registry [default: REGISTRY_NAME] Sealed Secrets image registry
-  ## @param image.repository [default: REPOSITORY_NAME/sealed-secrets] Sealed Secrets image repository
-  ## @skip image.tag Sealed Secrets image tag (immutable tags are recommended)
-  ## @param image.digest Sealed Secrets image digest in the way sha256:aa.... Please note this parameter, if set, will override the tag
+  ## @param commonLabels [object] Labels to add to all deployed resources
+  ## ref: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
+  ## 
+  commonLabels: {}
+
+  ## @section Sealed Secrets Parameters
+
+  ## Sealed Secrets image
+  ## ref: https://hub.docker.com/r/bitnami/sealed-secrets-controller/tags
+  ## @param image.registry Sealed Secrets image registry
+  ## @param image.repository Sealed Secrets image repository
+  ## @param image.tag Sealed Secrets image tag (immutable tags are recommended)
   ## @param image.pullPolicy Sealed Secrets image pull policy
   ## @param image.pullSecrets [array]  Sealed Secrets image pull secrets
-  ## @param image.debug Enable Sealed Secrets image debug mode
   ##
   image:
     registry: docker.io
     repository: bitnami/sealed-secrets-controller
-    tag: 0.26.2-debian-12-r4
-    digest: ""
+    tag: 0.26.2
     ## Specify a imagePullPolicy
     ## Defaults to 'Always' if image tag is 'latest', else set to 'IfNotPresent'
-    ## ref: http://kubernetes.io/docs/concepts/containers/images/#pre-pulled-images
+    ## ref: http://kubernetes.io/docs/user-guide/images/#pre-pulling-images
     ##
     pullPolicy: IfNotPresent
     ## Optionally specify an array of imagePullSecrets.
@@ -88,18 +55,6 @@ sealed-secrets:
     ##   - myRegistryKeySecretName
     ##
     pullSecrets: []
-    ## Enable debug mode
-    ##
-    debug: false
-  ## @param command [array] Override default container command (useful when using custom images)
-  ##
-  command: []
-  ## @param commandArgs [array] Additional args (doesn't override the default ones)
-  ##
-  commandArgs: []
-  ## @param args [array] Override default container args (useful when using custom images)
-  ##
-  args: []
   ## @param revisionHistoryLimit Number of old history to retain to allow rollback (If not set, default Kubernetes value is set to 10)
   ## e.g:
   revisionHistoryLimit: ""
@@ -108,7 +63,7 @@ sealed-secrets:
   createController: true
   ## @param secretName The name of an existing TLS secret containing the key used to encrypt secrets
   ##
-  secretName: ""
+  secretName: "sealed-secrets-key"
   ## @param updateStatus Specifies whether the Sealed Secrets controller should update the status subresource
   ##
   updateStatus: true
@@ -118,9 +73,12 @@ sealed-secrets:
   ## for secret re-creation.
   ##
   skipRecreate: false
-  ## @param keyRenewPeriod Specifies key renewal period. Default 30 days. e.g keyRenewPeriod: "720h30m"
+  ## @param keyrenewperiod Specifies key renewal period. Default 30 days
+  ## e.g
+  ## keyrenewperiod: "720h30m"
+  ## To disable use "0", with quotes!
   ##
-  keyRenewPeriod: ""
+  keyrenewperiod: ""
   ## @param rateLimit Number of allowed sustained request per second for verify endpoint
   ##
   rateLimit: ""
@@ -131,39 +89,28 @@ sealed-secrets:
   ##
   additionalNamespaces: []
   ## @param privateKeyAnnotations Map of annotations to be set on the sealing keypairs
-  ##
+  ## 
   privateKeyAnnotations: {}
   ## @param privateKeyLabels Map of labels to be set on the sealing keypairs
-  ##
+  ## 
   privateKeyLabels: {}
   ## @param logInfoStdout Specifies whether the Sealed Secrets controller will log info to stdout
   ##
   logInfoStdout: false
-  ## @param containerPorts.http Controller HTTP container port to open
-  ## @param containerPorts.metrics Controller metrics container port
+  ## @param logLevel Specifies log level of controller (INFO,ERROR)
   ##
-  containerPorts:
-    http: 8080
-    metrics: 8081
-  ## Sealed Secret resource requests and limits
-  ## ref: http://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/
-  ## @param resourcesPreset Set container resources according to one common preset (allowed values: none, nano, micro, small, medium, large, xlarge, 2xlarge). This is ignored if resources is set (resources is recommended for production).
-  ## More information: https://github.com/bitnami/charts/blob/main/bitnami/common/templates/_resources.tpl#L15
+  logLevel: ""
+  ## @param logFormat Specifies log format (text,json)
   ##
-  resourcesPreset: "nano"
-  ## @param resources Set container requests and limits for different resources like CPU or memory (essential for production workloads)
-  ## Example:
-  ## resources:
-  ##   requests:
-  ##     cpu: 2
-  ##     memory: 512Mi
-  ##   limits:
-  ##     cpu: 3
-  ##     memory: 1024Mi
+  logFormat: ""
+  ## @param command Override default container command
   ##
-  resources: {}
+  command: []
+  ## @param args Override default container args
+  ##
+  args: []
   ## Configure extra options for Sealed Secret containers' liveness, readiness and startup probes
-  ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/#configure-probes
+  ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/#configure-probes
   ## @param livenessProbe.enabled Enable livenessProbe on Sealed Secret containers
   ## @param livenessProbe.initialDelaySeconds Initial delay seconds for livenessProbe
   ## @param livenessProbe.periodSeconds Period seconds for livenessProbe
@@ -173,7 +120,7 @@ sealed-secrets:
   ##
   livenessProbe:
     enabled: true
-    initialDelaySeconds: 5
+    initialDelaySeconds: 0
     periodSeconds: 10
     timeoutSeconds: 1
     failureThreshold: 3
@@ -187,7 +134,7 @@ sealed-secrets:
   ##
   readinessProbe:
     enabled: true
-    initialDelaySeconds: 5
+    initialDelaySeconds: 0
     periodSeconds: 10
     timeoutSeconds: 1
     failureThreshold: 3
@@ -201,65 +148,54 @@ sealed-secrets:
   ##
   startupProbe:
     enabled: false
-    initialDelaySeconds: 10
+    initialDelaySeconds: 0
     periodSeconds: 10
     timeoutSeconds: 1
-    failureThreshold: 15
+    failureThreshold: 3
     successThreshold: 1
-  ## @param customLivenessProbe [object] Custom livenessProbe that overrides the default one
+  ## @param customLivenessProbe Custom livenessProbe that overrides the default one
   ##
   customLivenessProbe: {}
-  ## @param customReadinessProbe [object] Custom readinessProbe that overrides the default one
+  ## @param customReadinessProbe Custom readinessProbe that overrides the default one
   ##
   customReadinessProbe: {}
-  ## @param customStartupProbe [object] Custom startupProbe that overrides the default one
+  ## @param customStartupProbe Custom startupProbe that overrides the default one
   ##
   customStartupProbe: {}
+  ## Sealed Secret resource requests and limits
+  ## ref: http://kubernetes.io/docs/user-guide/compute-resources/
+  ## @param resources.limits [object] The resources limits for the Sealed Secret containers
+  ## @param resources.requests [object] The requested resources for the Sealed Secret containers
+  ##
+  resources:
+    limits: {}
+    requests: {}
   ## Configure Pods Security Context
   ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-pod
   ## @param podSecurityContext.enabled Enabled Sealed Secret pods' Security Context
-  ## @param podSecurityContext.fsGroupChangePolicy Set filesystem group change policy
-  ## @param podSecurityContext.sysctls Set kernel settings using the sysctl interface
-  ## @param podSecurityContext.supplementalGroups Set filesystem extra groups
   ## @param podSecurityContext.fsGroup Set Sealed Secret pod's Security Context fsGroup
   ##
   podSecurityContext:
     enabled: true
-    fsGroupChangePolicy: Always
-    sysctls: []
-    supplementalGroups: []
-    fsGroup: 1001
+    fsGroup: 65534
   ## Configure Container Security Context
   ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-pod
   ## @param containerSecurityContext.enabled Enabled Sealed Secret containers' Security Context
-  ## @param containerSecurityContext.allowPrivilegeEscalation Whether the Sealed Secret container can escalate privileges
-  ## @param containerSecurityContext.capabilities.drop Which privileges to drop in the Sealed Secret container
   ## @param containerSecurityContext.readOnlyRootFilesystem Whether the Sealed Secret container has a read-only root filesystem
   ## @param containerSecurityContext.runAsNonRoot Indicates that the Sealed Secret container must run as a non-root user
-  ## @param containerSecurityContext.seLinuxOptions [object,nullable] Set SELinux options in container
   ## @param containerSecurityContext.runAsUser Set Sealed Secret containers' Security Context runAsUser
-  ## @param containerSecurityContext.runAsGroup Set Sealed Secret containers' Security Context runAsGroup
-  ## @param containerSecurityContext.seccompProfile.type Set Sealed Secret container's Security Context seccompProfile type
+  ## @extra containerSecurityContext.capabilities Adds and removes POSIX capabilities from running containers (see `values.yaml`)
+  ## @skip  containerSecurityContext.capabilities.drop
   ##
   containerSecurityContext:
     enabled: true
-    allowPrivilegeEscalation: false
-    capabilities:
-      drop: ["ALL"]
     readOnlyRootFilesystem: true
     runAsNonRoot: true
-    seLinuxOptions: null
     runAsUser: 1001
-    runAsGroup: 1001
-    seccompProfile:
-      type: RuntimeDefault
-  ## @param automountServiceAccountToken Mount Service Account token in pod
-  ##
-  automountServiceAccountToken: true
-  ## @param hostAliases [array] Sealed Secret pods host aliases
-  ## https://kubernetes.io/docs/concepts/services-networking/add-entries-to-pod-etc-hosts-with-host-aliases/
-  ##
-  hostAliases: []
+    capabilities:
+      drop:
+        - ALL
+
   ## @param podLabels [object] Extra labels for Sealed Secret pods
   ## ref: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
   ##
@@ -268,112 +204,38 @@ sealed-secrets:
   ## ref: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/
   ##
   podAnnotations: {}
-  ## @param podAffinityPreset Pod affinity preset. Ignored if `affinity` is set. Allowed values: `soft` or `hard`
-  ## ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#inter-pod-affinity-and-anti-affinity
+  ## @param priorityClassName Sealed Secret pods' priorityClassName
   ##
-  podAffinityPreset: ""
-  ## @param podAntiAffinityPreset Pod anti-affinity preset. Ignored if `affinity` is set. Allowed values: `soft` or `hard`
-  ## ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#inter-pod-affinity-and-anti-affinity
+  priorityClassName: ""
+  ## @param runtimeClassName Sealed Secret pods' runtimeClassName
   ##
-  podAntiAffinityPreset: soft
-  ## Node affinity preset
-  ## ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#node-affinity
-  ##
-  nodeAffinityPreset:
-    ## @param nodeAffinityPreset.type Node affinity preset type. Ignored if `affinity` is set. Allowed values: `soft` or `hard`
-    ##
-    type: ""
-    ## @param nodeAffinityPreset.key Node label key to match. Ignored if `affinity` is set
-    ##
-    key: ""
-    ## @param nodeAffinityPreset.values [array] Node label values to match. Ignored if `affinity` is set
-    ## E.g.
-    ## values:
-    ##   - e2e-az1
-    ##   - e2e-az2
-    ##
-    values: []
+  runtimeClassName: ""
   ## @param affinity [object] Affinity for Sealed Secret pods assignment
   ## ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity
-  ## NOTE: `podAffinityPreset`, `podAntiAffinityPreset`, and `nodeAffinityPreset` will be ignored when it's set
   ##
   affinity: {}
   ## @param nodeSelector [object] Node labels for Sealed Secret pods assignment
-  ## ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/
+  ## ref: https://kubernetes.io/docs/user-guide/node-selection/
   ##
   nodeSelector: {}
   ## @param tolerations [array] Tolerations for Sealed Secret pods assignment
   ## ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
   ##
   tolerations: []
-  ## @param updateStrategy.type Sealed Secret statefulset strategy type
-  ## ref: https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/#update-strategies
+  ## @param additionalVolumes [object] Extra Volumes for the Sealed Secrets Controller Deployment
+  ## ref: https://kubernetes.io/docs/concepts/storage/volumes/
   ##
-  updateStrategy:
-    ## StrategyType
-    ## Can be set to RollingUpdate or OnDelete
-    ##
-    type: RollingUpdate
-  ## @param priorityClassName Sealed Secret pods' priorityClassName
+  additionalVolumes: []
+  ## @param additionalVolumeMounts [object] Extra volumeMounts for the Sealed Secrets Controller container
+  ## ref: https://kubernetes.io/docs/concepts/storage/volumes/
   ##
-  priorityClassName: ""
-  ## @param topologySpreadConstraints Topology Spread Constraints for pod assignment spread across your cluster among failure-domains. Evaluated as a template
-  ## Ref: https://kubernetes.io/docs/concepts/workloads/pods/pod-topology-spread-constraints/#spread-constraints-for-pods
-  ##
-  topologySpreadConstraints: []
-  ## @param schedulerName Name of the k8s scheduler (other than default) for Sealed Secret pods
-  ## ref: https://kubernetes.io/docs/tasks/administer-cluster/configure-multiple-schedulers/
-  ##
-  schedulerName: ""
-  ## @param terminationGracePeriodSeconds Seconds the pod needs to terminate gracefully
-  ## ref: https://kubernetes.io/docs/concepts/workloads/pods/pod/#termination-of-pods
-  ##
-  terminationGracePeriodSeconds: ""
-  ## @param lifecycleHooks [object] for the Sealed Secret container(s) to automate configuration before or after startup
-  ##
-  lifecycleHooks: {}
-  ## @param extraEnvVars Array with extra environment variables to add to Sealed Secret nodes
-  ## e.g:
-  ## extraEnvVars:
-  ##   - name: FOO
-  ##     value: "bar"
-  ##
-  extraEnvVars: []
-  ## @param extraEnvVarsCM Name of existing ConfigMap containing extra env vars for Sealed Secret nodes
-  ##
-  extraEnvVarsCM: ""
-  ## @param extraEnvVarsSecret Name of existing Secret containing extra env vars for Sealed Secret nodes
-  ##
-  extraEnvVarsSecret: ""
-  ## @param extraVolumes [array] Optionally specify extra list of additional volumes for the Sealed Secret pod(s)
-  ##
-  extraVolumes: []
-  ## @param extraVolumeMounts [array] Optionally specify extra list of additional volumeMounts for the Sealed Secret container(s)
-  ##
-  extraVolumeMounts: []
-  ## @param sidecars [object] Add additional sidecar containers to the Sealed Secret pod(s)
-  ## e.g:
-  ## sidecars:
-  ##   - name: your-image-name
-  ##     image: your-image
-  ##     imagePullPolicy: Always
-  ##     ports:
-  ##       - name: portname
-  ##         containerPort: 1234
-  ##
-  sidecars: []
-  ## @param initContainers [object] Add additional init containers to the Sealed Secret pod(s)
-  ## ref: https://kubernetes.io/docs/concepts/workloads/pods/init-containers/
-  ## e.g:
-  ## initContainers:
-  ##  - name: your-image-name
-  ##    image: your-image
-  ##    imagePullPolicy: Always
-  ##    command: ['sh', '-c', 'echo "hello world"']
-  ##
-  initContainers: []
+  additionalVolumeMounts: []
+  ## @param hostNetwork Sealed Secrets pods' hostNetwork
+  hostNetwork: false
+  ## @param dnsPolicy Sealed Secrets pods' dnsPolicy
+  dnsPolicy: ""
+
   ## @section Traffic Exposure Parameters
-  ##
 
   ## Sealed Secret service parameters
   ##
@@ -381,59 +243,20 @@ sealed-secrets:
     ## @param service.type Sealed Secret service type
     ##
     type: ClusterIP
-    ports:
-      ## @param service.ports.http Sealed Secret service HTTP port number
-      ##
-      http: 8080
-      ## @param service.ports.name Sealed Secret service HTTP port name
-      ##
-      name: http
-    ## @param service.nodePorts.http Node port for HTTP
+    ## @param service.port Sealed Secret service HTTP port
+    ##
+    port: 8080
+    ## @param service.nodePort Node port for HTTP
     ## Specify the nodePort value for the LoadBalancer and NodePort service types
     ## ref: https://kubernetes.io/docs/concepts/services-networking/service/#type-nodeport
     ## NOTE: choose port between <30000-32767>
     ##
-    nodePorts:
-      http: ""
-    ## @param service.clusterIP Sealed Secret service Cluster IP
-    ## e.g.:
-    ## clusterIP: None
-    ##
-    clusterIP: ""
-    ## @param service.loadBalancerIP Sealed Secret service Load Balancer IP
-    ## ref: https://kubernetes.io/docs/concepts/services-networking/service/#type-loadbalancer
-    ##
-    loadBalancerIP: ""
-    ## @param service.loadBalancerSourceRanges [array] Sealed Secret service Load Balancer sources
-    ## ref: https://kubernetes.io/docs/tasks/access-application-cluster/configure-cloud-provider-firewall/#restrict-access-for-loadbalancer-service
-    ## e.g:
-    ## loadBalancerSourceRanges:
-    ##   - 10.10.10.0/24
-    ##
-    loadBalancerSourceRanges: []
-    ## @param service.externalTrafficPolicy Sealed Secret service external traffic policy
-    ## ref: http://kubernetes.io/docs/tasks/access-application-cluster/create-external-load-balancer/#preserving-the-client-source-ip
-    ##
-    externalTrafficPolicy: Cluster
+    nodePort: ""
     ## @param service.annotations [object] Additional custom annotations for Sealed Secret service
     ##
     annotations: {}
-    ## @param service.extraPorts Extra ports to expose in Sealed Secret service (normally used with the `sidecars` value)
-    ##
-    extraPorts: []
-    ## @param service.sessionAffinity Control where client requests go, to the same pod or round-robin
-    ## Values: ClientIP or None
-    ## ref: https://kubernetes.io/docs/concepts/services-networking/service/
-    ##
-    sessionAffinity: None
-    ## @param service.sessionAffinityConfig Additional settings for the sessionAffinity
-    ## sessionAffinityConfig:
-    ##   clientIP:
-    ##     timeoutSeconds: 300
-    ##
-    sessionAffinityConfig: {}
   ## Sealed Secret ingress parameters
-  ## ref: http://kubernetes.io/docs/concepts/services-networking/ingress/
+  ## ref: http://kubernetes.io/docs/user-guide/ingress/
   ##
   ingress:
     ## @param ingress.enabled Enable ingress record generation for Sealed Secret
@@ -454,18 +277,22 @@ sealed-secrets:
     ##
     hostname: sealed-secrets.local
     ## @param ingress.path Default path for the ingress record
-    ## NOTE: You may need to set this to '/*' in order to use this with ALB ingress controllers
     ##
-    path: /
-    ## @param ingress.annotations [object] Additional custom annotations for the ingress record
-    ## NOTE: If `ingress.certManager=true`, annotation `kubernetes.io/tls-acme: "true"` will automatically be added
+    path: /v1/cert.pem
+    ## @param ingress.annotations [object] Additional annotations for the Ingress resource. To enable certificate autogeneration, place here your cert-manager annotations.
+    ## Use this parameter to set the required annotations for cert-manager, see
+    ## ref: https://cert-manager.io/docs/usage/ingress/#supported-annotations
+    ## e.g:
+    ## annotations:
+    ##   kubernetes.io/ingress.class: nginx
+    ##   cert-manager.io/cluster-issuer: cluster-issuer-name
     ##
     annotations: {}
     ## @param ingress.tls Enable TLS configuration for the host defined at `ingress.hostname` parameter
     ## TLS certificates will be retrieved from a TLS secret with name: `{{- printf "%s-tls" .Values.ingress.hostname }}`
     ## You can:
     ##   - Use the `ingress.secrets` parameter to create this TLS secret
-    ##   - Relay on cert-manager to create it by setting `ingress.certManager=true`
+    ##   - Relay on cert-manager to create it by setting the corresponding annotations
     ##   - Relay on Helm to create self-signed certificates by setting `ingress.selfSigned=true`
     ##
     tls: false
@@ -517,82 +344,6 @@ sealed-secrets:
     ##       -----END CERTIFICATE-----
     ##
     secrets: []
-    ## @param ingress.extraRules Additional rules to be covered with this ingress record
-    ## ref: https://kubernetes.io/docs/concepts/services-networking/ingress/#ingress-rules
-    ## e.g:
-    ## extraRules:
-    ## - host: airflow.local
-    ##     http:
-    ##       path: /
-    ##       backend:
-    ##         service:
-    ##           name: airflow-svc
-    ##           port:
-    ##             name: http
-    ##
-    extraRules: []
-  ## @section Other Parameters
-  ##
-
-  ## RBAC configuration
-  ##
-  rbac:
-    ## @param rbac.create Specifies whether RBAC resources should be created
-    ##
-    create: true
-    ## @param rbac.pspEnabled PodSecurityPolicy
-    ##
-    pspEnabled: false
-    ## @param rbac.clusterRole Specifies whether the Cluster Role resource should be created. If both rbac.clusterRole and rbac.namespacedRoles are set to false no RBAC will be created.
-    ##
-    clusterRole: true
-    ## @param rbac.clusterRoleName Specifies the name for the Cluster Role resource
-    ##
-    clusterRoleName: ""
-    ## @param rbac.namespacedRoles Specifies whether the namespaced Roles should be created (in each of the specified additionalNamespaces). If both rbac.clusterRole and rbac.namespacedRoles are set to false no RBAC will be created.
-    ##
-    namespacedRoles: false
-    ## @param rbac.namespacedRolesName Specifies the name for the namesapced Role resource
-    ##
-    namespacedRolesName: ""
-    ## @param rbac.unsealer.rules Custom RBAC rules to set for unsealer ClusterRole
-    ## @param rbac.keyAdmin.rules Custom RBAC rules to set for key-admin role
-    ## @param rbac.serviceProxier.rules Custom RBAC rules to set for service-proxier role
-    ## e.g:
-    ## rules:
-    ##   - apiGroups:
-    ##       - ""
-    ##     resources:
-    ##       - pods
-    ##     verbs:
-    ##       - get
-    ##       - list
-    ##
-    unsealer:
-      rules: []
-    keyAdmin:
-      rules: []
-    serviceProxier:
-      rules: []
-    ## @param rbac.labels Extra labels to be added to RBAC resources
-    ##
-    labels: {}
-  ## ServiceAccount configuration
-  ##
-  serviceAccount:
-    ## @param serviceAccount.create Specifies whether a ServiceAccount should be created
-    ##
-    create: true
-    ## @param serviceAccount.name The name of the ServiceAccount to use.
-    ## If not set and create is true, a name is generated using the common.names.fullname template
-    ##
-    name: ""
-    ## @param serviceAccount.annotations Additional Service Account annotations (evaluated as a template)
-    ##
-    annotations: {}
-    ## @param serviceAccount.automountServiceAccountToken Automount service account token for the server service account
-    ##
-    automountServiceAccountToken: false
   ## Network policies
   ## Ref: https://kubernetes.io/docs/concepts/services-networking/network-policies/
   ##
@@ -600,105 +351,162 @@ sealed-secrets:
     ## @param networkPolicy.enabled Specifies whether a NetworkPolicy should be created
     ##
     enabled: false
-    ## @param networkPolicy.allowExternal Don't require client label for connections
-    ## When set to false, only pods with the correct client label will have network access to the port the controller is
-    ## listening on. When true, the controller accept connections from any source (with the correct destination port).
+    ## NetworkPolicy Egress configuration
     ##
-    allowExternal: true
-  ## Pod Disruption Budget configuration
-  ## ref: https://kubernetes.io/docs/tasks/run-application/configure-pdb/
-  ## @param pdb.create Enable a Pod Disruption Budget creation
-  ## @param pdb.minAvailable Minimum number/percentage of pods that should remain scheduled
-  ## @param pdb.maxUnavailable Maximum number/percentage of pods that may be made unavailable
+    egress:
+      ## @param networkPolicy.egress.enabled Specifies wheter a egress is set in the NetworkPolicy
+      ##
+      enabled: false
+      ## @param networkPolicy.egress.kubeapiCidr Specifies the kubeapiCidr, which is the only egress allowed. If not set, kubeapiCidr will be found using Helm lookup
+      ##
+      kubeapiCidr: ""
+      ## @param networkPolicy.egress.kubeapiPort Specifies the kubeapiPort, which is the only egress allowed. If not set, kubeapiPort will be found using Helm lookup
+      ##
+      kubeapiPort: ""
+
+  ## @section Other Parameters
+
+  ## ServiceAccount configuration
   ##
-  pdb:
-    create: false
-    minAvailable: ""
-    maxUnavailable: ""
+  serviceAccount:
+    ## @param serviceAccount.annotations [object] Annotations for Sealed Secret service account
+    ## ref: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/
+    ##
+    annotations: {}
+    ## @param serviceAccount.create Specifies whether a ServiceAccount should be created
+    ##
+    create: true
+    ## @param serviceAccount.labels Extra labels to be added to the ServiceAccount
+    ##
+    labels: {}
+    ## @param serviceAccount.name The name of the ServiceAccount to use.
+    ## If not set and create is true, a name is generated using the sealed-secrets.fullname template
+    ##
+    name: ""
+  ## RBAC configuration
+  ##
+  rbac:
+    ## @param rbac.create Specifies whether RBAC resources should be created
+    ##
+    create: true
+    ## @param rbac.clusterRole Specifies whether the Cluster Role resource should be created
+    ##
+    clusterRole: true
+    ## @param rbac.clusterRoleName Specifies the name for the Cluster Role resource
+    ##
+    clusterRoleName: "secrets-unsealer"
+    ## @param rbac.namespacedRoles Specifies whether the namespaced Roles should be created (in each of the specified additionalNamespaces)
+    ##
+    namespacedRoles: false
+    ## @param rbac.namespacedRolesName Specifies the name for the namesapced Role resource
+    ##
+    namespacedRolesName: "secrets-unsealer"
+    ## @param rbac.labels Extra labels to be added to RBAC resources
+    ##
+    labels: {}
+    ## @param rbac.pspEnabled PodSecurityPolicy
+    ##
+    pspEnabled: false
+    ## "Proxier" RBAC Role configuration
+    ##
+    serviceProxier:
+      ## @param rbac.serviceProxier.create Specifies whether to create the "proxier" role, to allow external users to access the SealedSecret API
+      ##
+      create: true
+      ## @param rbac.serviceProxier.bind Specifies whether to create a RoleBinding for the "proxier" role
+      ##
+      bind: true
+      ## @param rbac.serviceProxier.subjects Specifies the RBAC subjects to grant the "proxier" role to, in the created RoleBinding
+      ## It is best to change this to something narrower, as the default binding gives `system:authenticated` access, which is very broad
+      ##
+      subjects: |
+        - apiGroup: rbac.authorization.k8s.io
+          kind: Group
+          name: system:authenticated
+
   ## @section Metrics parameters
-  ##
+
   metrics:
-    ## @param metrics.enabled Sealed Secrets toggle metrics service definition
-    enabled: false
-    service:
-      ## @param metrics.service.type Sealed Secrets metrics service type
-      ##
-      type: ClusterIP
-      ## @param metrics.service.ports.metrics Sealed Secrets metrics service port
-      ##
-      ports:
-        metrics: 8081
-      ## @param metrics.service.externalTrafficPolicy Sealed Secrets metrics service external traffic policy
-      ## ref: https://kubernetes.io/docs/tasks/access-application-cluster/create-external-load-balancer/#preserving-the-client-source-ip
-      ##
-      externalTrafficPolicy: Cluster
-      ## @param metrics.service.extraPorts Extra ports to expose (normally used with the `sidecar` value)
-      ##
-      extraPorts: []
-      ## @param metrics.service.loadBalancerIP Sealed Secrets metrics service Load Balancer IP
-      ## ref: https://kubernetes.io/docs/concepts/services-networking/service/#internal-load-balancer
-      ##
-      loadBalancerIP: ""
-      ## @param metrics.service.loadBalancerSourceRanges Sealed Secrets metrics service Load Balancer sources
-      ## https://kubernetes.io/docs/tasks/access-application-cluster/configure-cloud-provider-firewall/#restrict-access-for-loadbalancer-service
-      ## e.g.
-      ## loadBalancerSourceRanges:
-      ##   - 10.10.10.0/24
-      ##
-      loadBalancerSourceRanges: []
-      ## @param metrics.service.annotations Additional custom annotations for Sealed Secrets metrics service
-      ##
-      annotations: {}
-    ## Prometheus Service Monitor
-    ## ref: https://github.com/coreos/prometheus-operator
-    ##      https://github.com/coreos/prometheus-operator/blob/master/Documentation/api.md#endpoint
+    ## Prometheus Operator ServiceMonitor configuration
     ##
     serviceMonitor:
       ## @param metrics.serviceMonitor.enabled Specify if a ServiceMonitor will be deployed for Prometheus Operator
       ##
       enabled: false
-      ## @param metrics.serviceMonitor.namespace Namespace in which Prometheus is running
+      ## @param metrics.serviceMonitor.namespace Namespace where Prometheus Operator is running in
       ##
       namespace: ""
-      port:
-        ## @param metrics.serviceMonitor.port.number Port number for the serviceMonitor
-        name: "metrics"
-        ## @param metrics.serviceMonitor.port.name Port name for the serviceMonitor
-        number: 8081
       ## @param metrics.serviceMonitor.labels Extra labels for the ServiceMonitor
       ##
       labels: {}
-      ## @param metrics.serviceMonitor.annotations Additional ServiceMonitor annotations (evaluated as a template)
+      ## @param metrics.serviceMonitor.annotations Extra annotations for the ServiceMonitor
       ##
       annotations: {}
-      ## @param metrics.serviceMonitor.jobLabel The name of the label on the target service to use as the job name in Prometheus
-      ##
-      jobLabel: ""
-      ## @param metrics.serviceMonitor.honorLabels honorLabels chooses the metric's labels on collisions with target labels
-      ##
-      honorLabels: false
-      ## @param metrics.serviceMonitor.interval Interval at which metrics should be scraped.
-      ## ref: https://github.com/coreos/prometheus-operator/blob/master/Documentation/api.md#endpoint
+      ## @param metrics.serviceMonitor.interval How frequently to scrape metrics
       ## e.g:
       ## interval: 10s
       ##
       interval: ""
       ## @param metrics.serviceMonitor.scrapeTimeout Timeout after which the scrape is ended
-      ## ref: https://github.com/coreos/prometheus-operator/blob/master/Documentation/api.md#endpoint
       ## e.g:
       ## scrapeTimeout: 10s
       ##
       scrapeTimeout: ""
-      ## @param metrics.serviceMonitor.metricRelabelings Specify additional relabeling of metrics
+      ## @param metrics.serviceMonitor.honorLabels Specify if ServiceMonitor endPoints will honor labels
+      ##
+      honorLabels: true
+      ## @param metrics.serviceMonitor.metricRelabelings [array] Specify additional relabeling of metrics
       ##
       metricRelabelings: []
-      ## @param metrics.serviceMonitor.relabelings Specify general relabeling
+      ## @param metrics.serviceMonitor.relabelings [array] Specify general relabeling
       ##
       relabelings: []
-      ## @param metrics.serviceMonitor.selector Prometheus instance selector labels
-      ## ref: https://github.com/bitnami/charts/tree/main/bitnami/prometheus-operator#prometheus-configuration
-      ## selector:
-      ##   prometheus: my-prometheus
+    ## Grafana dashboards configuration
+    ##
+    dashboards:
+      ## @param metrics.dashboards.create Specifies whether a ConfigMap with a Grafana dashboard configuration should be created
+      ## ref https://github.com/helm/charts/tree/master/stable/grafana#configuration
       ##
-      selector: {}
+      create: false
+      ## @param metrics.dashboards.labels Extra labels to be added to the Grafana dashboard ConfigMap
+      ##
+      labels: {}
+      ## @param metrics.dashboards.annotations Annotations to be added to the Grafana dashboard ConfigMap
+      ##
+      annotations: {}
+      ## @param metrics.dashboards.namespace Namespace where Grafana dashboard ConfigMap is deployed
+      ##
+      namespace: ""
+
+    ## Sealed Secret Metrics service parameters
+    ##
+    service:
+      ## @param metrics.service.type Sealed Secret Metrics service type
+      ##
+      type: ClusterIP
+      ## @param metrics.service.port Sealed Secret service Metrics HTTP port
+      ##
+      port: 8081
+      ## @param metrics.service.nodePort Node port for HTTP
+      ## Specify the nodePort value for the LoadBalancer and NodePort service types
+      ## ref: https://kubernetes.io/docs/concepts/services-networking/service/#type-nodeport
+      ## NOTE: choose port between <30000-32767>
+      ##
+      nodePort: ""
+      ## @param metrics.service.annotations [object] Additional custom annotations for Sealed Secret Metrics service
+      ##
+      annotations: {}
+
+  ## @section PodDisruptionBudget Parameters
+
+  pdb:
+    ## @param pdb.create Specifies whether a PodDisruptionBudget should be created
+    ##
+    create: false
+    ## @param pdb.minAvailable The minimum number of pods (non number to omit)
+    ##
+    minAvailable: 1
+    ## @param pdb.maxUnavailable The maximum number of unavailable pods (non number to omit)
+    ##
+    maxUnavailable: ""
 
