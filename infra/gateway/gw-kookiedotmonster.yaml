@@ -13,6 +13,17 @@ spec:
   listeners:
     - protocol: HTTPS
       port: 443
+      name: https-gateway
+      hostname: gateway.home.kookie.monster
+      tls:
+        certificateRefs:
+          - kind: Secret
+            name: cloudflare-cert
+      allowedRoutes:
+        namespaces:
+          from: All
+    - protocol: HTTPS
+      port: 443
       name: https-whoami
       hostname: whoami.home.kookie.monster
       tls:
@@ -37,6 +48,17 @@ spec:
       port: 443
       name: https-hubble
       hostname: hubble.home.kookie.monster
+      tls:
+        certificateRefs:
+          - kind: Secret
+            name: cloudflare-cert
+      allowedRoutes:
+        namespaces:
+          from: All
+    - protocol: HTTPS
+      port: 443
+      name: https-podinfo
+      hostname: podinfo.home.kookie.monster
       tls:
         certificateRefs:
           - kind: Secret
