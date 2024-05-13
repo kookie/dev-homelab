@@ -1,0 +1,19 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: hubble-http-route
+  namespace: kube-system
+spec:
+  parentRefs:
+    - name: kookiedotmonster
+      namespace: gateway
+  hostnames:
+    - "hubble.home.kookie.monster"
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - name: hubble-ui
+          port: 80
